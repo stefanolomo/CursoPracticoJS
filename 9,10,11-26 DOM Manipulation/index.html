@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>Document</title>
+	<link rel="stylesheet" href="./index.css">
+	<link rel="stylesheet" href="./normalize.css">
+</head>
+<body>
+	<main>
+		<h1 class="tittle">Finding the “Second Bug” in glibc’s Condition Variable</h1>
+		<p class="author">by Malte Skarupke</p>
+		<p class="text">
+			I can program and like games
+			Finding the “Second Bug” in glibc’s Condition Variable
+			by Malte Skarupke
+			I continue to have no time for big programming projects, so here is a short blog post. Two years ago I
+			looked into a bug in the glibc implementation of condition variables: Sometimes pthread_cond_signal()
+			doesn’t do anything, which can easily hang your program. The bug is still not fixed, partially because a
+			mitigation patch was available right away that seemed to make it go away. Except that people kept on showing
+			up in the bug report saying that they still hit the bug sometimes, raising the suspicion that there might be
+			a second bug. I finally got around to looking into this. I found that the mitigation patch only helps a
+			little, it’s still the same bug, and the patch I submitted would actually fix it.
+		</p>
+		<p class="text">
+			As I mentioned last time, one of the affected programming languages is Ocaml. Their master lock occasionally doesn’t notify a sleeper because sometimes pthread_cond_signal() doesn’t do anything. And then the whole process hangs forever, because that’s what happens when someone doesn’t get woken up in cooperative multithreading.
+		</p>
+		<p class="text">
+			Checking this code in TLA+ happens to be easier than the code I was checking last time, because this results in a deadlock, which can be checked quickly. Last time I had to write temporal formulas, which make TLA+ run slowly, but a deadlock is easy to find: Find a state that has no successor states. All TLA+ has to do is enumerate all states. So whenever you can, try to write your TLA+ code so that it causes a deadlock on error.
+		</p>
+		<p class="text">
+			The Ocaml masterlock can be directly translated into the PlusCal language of TLA+. It just wraps a normal mutex and adds a count of waiters, to make cooperative multithreading slightly more efficient: You can quickly check if anyone actually wants the lock, so you don’t have to give it up if nobody is waiting. For our purposes we don’t even need the yield function, just st_masterlock_acquire() and st_masterlock_release() ended up being enough. Then all we have to do is call those in a loop on multiple threads. Here is the code in PlusCal (it’s calling the mutex and condition-variable functions we wrote last time)
+		</p>
+		<section class="newsletter">
+			<h3 class="item">Interested in more articles like this? Sign up for our newsletter</h3>
+			<div class="forms">
+				<input type="email" class="item" placeholder="Your email here">
+				<div class="item">
+					<input type="checkbox" name="TermsOfService" id="ToS" class="asd">
+					<p class="TOS">I accept the <a href="#">Terms of service</a></p>
+				</div>
+				<button class="item">Ok</button>
+			</div>
+		</section>
+	</main>
+	<footer>
+		<h2>DEBUG PANEL</h2>
+		<button onclick="cambiarAutor()">Change Author</button>
+		<button onclick="cambiarTitulo()">Change Tittle</button>
+		<button onclick="cambiarImagen()">Change Image</button>
+	</footer>
+	<script src="./index.js"></script>
+</body>
+</html>
